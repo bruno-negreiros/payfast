@@ -1,7 +1,12 @@
-const express = require('express');
-const app = express();
+var express = require('express');
+var consign = require('consign');
 
-module.exports = app;
+module.exports = function() {
+  var app = express();
 
-const rotas = require('../controllers/pagamentos'); // ou const rotas = require('../controllers/pagamentos')(app);
-rotas(app);
+  consign()
+   .include('controllers')
+   .into(app);
+
+  return app;
+}

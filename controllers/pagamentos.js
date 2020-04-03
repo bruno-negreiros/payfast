@@ -4,4 +4,9 @@ module.exports = function(app) {
     console.log('Requisição GET interceptada na rota /pagamentos.')
     resp.send('OK.');
   });
+
+  app.post('/pagamentos/pagamento', function(req, resp) {
+    resp.send('OK');
+    console.log(req.body);
+  });
 }

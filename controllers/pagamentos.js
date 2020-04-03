@@ -6,7 +6,12 @@ module.exports = function(app) {
   });
 
   app.post('/pagamentos/pagamento', function(req, resp) {
-    resp.send('OK');
-    console.log(req.body);
+    console.log('Requisição POST interceptada na rota /pagamentos/pagamento.')
+    var pagamento = req.body;
+
+    pagamento.status = "CRIADO";
+    pagamento.data = new Date;
+
+    resp.send(pagamento);
   });
 }

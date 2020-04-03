@@ -12,6 +12,13 @@ module.exports = function(app) {
     pagamento.status = "CRIADO";
     pagamento.data = new Date;
 
-    resp.send(pagamento);
+    var connection = app.persistencia.connectionFactory();
+    var pagamentoDao = new app.persistencia.PagamentoDao(connection);
+
+    pagamentoDao.salva(pagamento, function(erro, resultado) {
+      console.log('pagamento criado');
+      resp.json(pagamento);
+    });
   });
+
 }

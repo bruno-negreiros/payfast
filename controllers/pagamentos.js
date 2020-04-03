@@ -32,10 +32,11 @@ module.exports = function(app) {
     pagamentoDao.salva(pagamento, function(erro, resultado) {
       if (erro) {
         console.log('Erro ao salvar no banco: ' + erro);
-        resp.status(400).send(erro);
+        resp.status(500).send(erro);
       } else {
         console.log('pagamento criado');
-        resp.json(pagamento);
+        resp.status.(201).json(pagamento);
+        resp.location('/pagamentos/pagamento/' + resultado.insertId);  
       }
     });
   });

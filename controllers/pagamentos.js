@@ -16,8 +16,12 @@ module.exports = function(app) {
     var pagamentoDao = new app.persistencia.PagamentoDao(connection);
 
     pagamentoDao.salva(pagamento, function(erro, resultado) {
-      console.log('pagamento criado');
-      resp.json(pagamento);
+      if (erro) {
+        resp.send(erro);
+      } else {
+        console.log('pagamento criado');
+        resp.json(pagamento);
+      }
     });
   });
 

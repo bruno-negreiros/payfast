@@ -5,6 +5,24 @@ module.exports = function(app) {
     resp.send('OK.');
   });
 
+  app.put('/pagamentos/pagamento/:id', function(req, resp) {
+    const id = req.params['id'];
+    var pagamento = {};
+    var connection = app.persistencia.connectionFactory();
+    var pagamentoDao = new app.persistencia.PagamentoDao(connection);
+
+    pagamento.id = id;
+    pagamento.status = 'CONFIRMADO';
+
+    pagamentoDao.atualiza(pagamento, function(erro, resultado) {
+      if(erro) {
+        resp.status(500).send(erro);
+        return
+      }
+      resp.status(200).send(pagamento);
+    });
+  });
+
   app.post('/pagamentos/pagamento', function(req, resp) {
     console.log('Requisição POST interceptada na rota /pagamentos/pagamento.');
 
@@ -35,8 +53,8 @@ module.exports = function(app) {
         resp.status(500).send(erro);
       } else {
         console.log('pagamento criado');
-        resp.status.(201).json(pagamento);
-        resp.location('/pagamentos/pagamento/' + resultado.insertId);  
+        resp.status(201).json(pagamento);
+        resp.location('/pagamentos/pagamento/' + resultado.insertId);
       }
     });
   });

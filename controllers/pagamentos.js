@@ -44,11 +44,12 @@ module.exports = function(app) {
   });
 
   app.post('/pagamentos/pagamento', function(req, resp) {
+    var pagamento = req.body['dados_pagamento'];
     console.log('Requisição POST interceptada na rota /pagamentos/pagamento.');
 
-    req.assert('forma_de_pagamento', 'Obrigatório informar forma de pagamento.').notEmpty();
-    req.assert('valor', 'Obrigatório informar o valor e o mesmo deve ser um decimal').notEmpty().isFloat();
-    req.assert('moeda', 'Obrigatório informar a moeda e a mesma deve ter 3 caracteres').notEmpty().len(3,3);
+    req.assert('dados_pagamento.forma_de_pagamento', 'Obrigatório informar forma de pagamento.').notEmpty();
+    req.assert('dados_pagamento.valor', 'Obrigatório informar o valor e o mesmo deve ser um decimal').notEmpty().isFloat();
+    req.assert('dados_pagamento.moeda', 'Obrigatório informar a moeda e a mesma deve ter 3 caracteres').notEmpty().len(3,3);
 
     var errors = req.validationErrors();
 
@@ -58,42 +59,52 @@ module.exports = function(app) {
       return;
     }
     console.log('Processando pagamento.');
+    if(pagamento.forma_de_pagamento === 'cartao') {
+      var cartao = req.body['dados_cartao'];
+      var clienteCartoes = new app.servicos.clienteCartoes();
 
-    var pagamento = req.body;
+      clienteCartoes.autoriza(cartao, function(exception, request, response, retorno) {
+        console.log('Compra com cartão de crédito criada.');
+        resp.location('/pagamentos/pagamento/' + pagamento.id) // location tem que ser setado antes de enviar a resposta.
+        resp.status(201).json(retorno)
+        return;
+      });
 
-    pagamento.status = "CRIADO";
-    pagamento.data = new Date;
+    } else {
+      pagamento.status = "CRIADO";
+      pagamento.data = new Date;
 
-    var connection = app.persistencia.connectionFactory();
-    var pagamentoDao = new app.persistencia.PagamentoDao(connection);
+      var connection = app.persistencia.connectionFactory();
+      var pagamentoDao = new app.persistencia.PagamentoDao(connection);
 
-    pagamentoDao.salva(pagamento, function(erro, resultado) {
-      if (erro) {
-        console.log('Erro ao salvar no banco: ' + erro);
-        resp.status(500).send(erro);
-      } else {
-        pagamento.id = resultado.insertId;
-        const response = {
-          dadosPagamento: pagamento,
-          links: [
-            {
-              href: `http://localhost:3000/pagamentos/pagamento/${pagamento.id}`,
-              rel: 'Confirmar',
-              method: 'PUT'
-            },
-            {
-              href: `http://localhost:3000/pagamentos/pagamento/${pagamento.id}`,
-              rel: 'Cancelar',
-              method: 'DELETE'
-            }
-          ]
-        };
+      pagamentoDao.salva(pagamento, function(erro, resultado) {
+        if (erro) {
+          console.log('Erro ao salvar no banco: ' + erro);
+          resp.status(500).send(erro);
+        } else {
+          pagamento.id = resultado.insertId;
+          const response = {
+            dadosPagamento: pagamento,
+            links: [
+              {
+                href: `http://localhost:3000/pagamentos/pagamento/${pagamento.id}`,
+                rel: 'Confirmar',
+                method: 'PUT'
+              },
+              {
+                href: `http://localhost:3000/pagamentos/pagamento/${pagamento.id}`,
+                rel: 'Cancelar',
+                method: 'DELETE'
+              }
+            ]
+          };
 
-        console.log('Pagamento criado.');
-        resp.location('/pagamentos/pagamento/' + pagamento.id // location tem que ser setado antes de enviar a resposta.
-        resp.status(201).json(response);
-      }
-    });
+          console.log('Pagamento criado.');
+          resp.location('/pagamentos/pagamento/' + pagamento.id) // location tem que ser setado antes de enviar a resposta.
+          resp.status(201).json(response);
+        }
+      });
+    }
   });
 
 }

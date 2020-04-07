@@ -72,9 +72,26 @@ module.exports = function(app) {
         console.log('Erro ao salvar no banco: ' + erro);
         resp.status(500).send(erro);
       } else {
+        pagamento.id = resultado.insertId;
+        const response = {
+          dadosPagamento: pagamento,
+          links: [
+            {
+              href: `http://localhost:3000/pagamentos/pagamento/${pagamento.id}`,
+              rel: 'Confirmar',
+              method: 'PUT'
+            },
+            {
+              href: `http://localhost:3000/pagamentos/pagamento/${pagamento.id}`,
+              rel: 'Cancelar',
+              method: 'DELETE'
+            }
+          ]
+        };
+
         console.log('Pagamento criado.');
-        resp.status(201).json(pagamento);
-        resp.location('/pagamentos/pagamento/' + resultado.insertId);
+        resp.location('/pagamentos/pagamento/' + pagamento.id // location tem que ser setado antes de enviar a resposta.
+        resp.status(201).json(response);
       }
     });
   });

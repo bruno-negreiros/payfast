@@ -19,7 +19,27 @@ module.exports = function(app) {
         resp.status(500).send(erro);
         return
       }
-      resp.status(200).send(pagamento);
+      resp.status(200).json(pagamento);
+      console.log('Pagamento confirmado.');
+    });
+  });
+
+  app.delete('/pagamentos/pagamento/:id', function(req, resp) {
+    const id = req.params.id;
+    pagamento = {};
+    var connection = app.persistencia.connectionFactory();
+    var pagamentoDao = new app.persistencia.PagamentoDao(connection);
+
+    pagamento.id = id;
+    pagamento.status = 'CANCELADO';
+
+    pagamentoDao.atualiza(pagamento, function(erro, resultado) {
+      if(erro) {
+        resp.status(500).send(erro);
+        return;
+      }
+      resp.status(204).json(pagamento);
+      console.log('Pagamento cancelado.');
     });
   });
 
@@ -52,7 +72,7 @@ module.exports = function(app) {
         console.log('Erro ao salvar no banco: ' + erro);
         resp.status(500).send(erro);
       } else {
-        console.log('pagamento criado');
+        console.log('Pagamento criado.');
         resp.status(201).json(pagamento);
         resp.location('/pagamentos/pagamento/' + resultado.insertId);
       }
